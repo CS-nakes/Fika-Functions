@@ -8,9 +8,7 @@
     "target": "es6",
     "esModuleInterop": true,
     "moduleResolution": "node",
-    "sourceMap": true,
     "noImplicitAny": false,
   },
   "compileOnSave": true,
-  "include": ["index.ts"]
 }

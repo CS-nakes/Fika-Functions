@@ -1,4 +1,3 @@
-
 import admin from "firebase-admin";
 
 const adminApp = admin.initializeApp({
