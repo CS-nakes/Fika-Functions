@@ -6,8 +6,11 @@
     "outDir": "lib",
     "strict": true,
     "target": "es6",
+    "esModuleInterop": true,
+    "moduleResolution": "node",
     "sourceMap": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "noImplicitAny": false,
   },
   "compileOnSave": true,
   "include": ["index.ts"]
