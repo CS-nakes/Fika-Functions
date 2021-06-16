@@ -15,7 +15,7 @@ type TimeslotAndUser = {
   };
 };
 
-export const createSessionOnSignUp = firestore
+export const createSessionOnCreateUser = firestore
   .document("users")
   .onCreate(async () => {
     try {
@@ -26,6 +26,22 @@ export const createSessionOnSignUp = firestore
     }
   });
 
+export const createSessionOnUpdateUserAvailability = firestore
+  .document("users")
+  .onUpdate(async (change) => {
+    try {
+      // Returns early if `isAvailable` is undefined OR false
+      if (!change.after.data()?.isAvailable) {
+        logger.log("Returns early!")
+        return;
+      }
+      const timeslotAndUser = await findAndGroupAvailableUsersPerTimeslot();
+      return matchAvailableUsersPerTimeslot(timeslotAndUser);
+    } catch (error) {
+      logger.warn(error.message);
+    }
+  });
+  
 const findAndGroupAvailableUsersPerTimeslot =
   async (): Promise<TimeslotAndUser> => {
     // Two maps for two-way location
@@ -39,7 +55,7 @@ const findAndGroupAvailableUsersPerTimeslot =
     // Find available users
     const availableUsers = adminFirestore
       .collection("users")
-      .where("isScheduled", "==", false);
+      .where("isAvailable", "==", false);
 
     // Group available users based on their preferred timeslots
     // Note: users can be in grouped to multiple timeslots
@@ -69,7 +85,7 @@ const findAndGroupAvailableUsersPerTimeslot =
 
 // For each pair of users in the same timeslot, match them
 // 1. [Firestore] Create an entry in `sessions`
-// 2. [Firestore] Update both users' `isScheduled` status
+// 2. [Firestore] Update both users' `isAvailable` status
 // 3. [Local] Remove both users' from other timeslot groups
 const matchAvailableUsersPerTimeslot = async ({
   timeslotToUser,
@@ -102,10 +118,10 @@ const matchAvailableUsersPerTimeslot = async ({
       participants: pair,
       date: Date.now(),
     });
-    // 2. Update both users' `isScheduled` status
+    // 2. Update both users' `isAvailable` status
     pair.forEach((userId) => {
       userCollection.doc(userId).update({
-        isScheduled: true,
+        isAvailable: true,
       });
     });
   });
